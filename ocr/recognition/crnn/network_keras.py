@@ -8,12 +8,24 @@ def keras_crnn(imgH, nc, nclass, nh, n_rnn=2, leakyRelu=False, lstmFlag=True):
     """
     基于pytorch 实现 keras dense ocr
     pytorch lstm 层暂时无法转换为 keras lstm层
+
+    # Arguments
+        imgH: 图像高度
+        nc:
+        nclass: 类别
+        nh:
+        n_rnn:
+        leakyRelu:
+        lstmFlag:
+
+    # Returns
+        返回构建好的模型
     """
     data_format = 'channels_first'
-    ks = [3, 3, 3, 3, 3, 3, 2]
-    ps = [1, 1, 1, 1, 1, 1, 0]
-    ss = [1, 1, 1, 1, 1, 1, 1]
-    nm = [64, 128, 256, 256, 512, 512, 512]
+    ks = [3, 3, 3, 3, 3, 3, 2]  # kernel size (i, i)
+    ps = [1, 1, 1, 1, 1, 1, 0]  # padding = valid|same
+    ss = [1, 1, 1, 1, 1, 1, 1]  # strides (i, 1)
+    nm = [64, 128, 256, 256, 512, 512, 512]  # output dim
     imgInput = Input(shape=(1, imgH, None), name='imgInput')
 
     def convRelu(i, batchNormalization=False, x=None):
@@ -65,7 +77,7 @@ def keras_crnn(imgH, nc, nclass, nh, n_rnn=2, leakyRelu=False, lstmFlag=True):
                   data_format=data_format)(x)
     x = convRelu(6, batchNormalization=True, x=x)
 
-    x = Permute((3, 2, 1))(x)
+    x = Permute((3, 2, 1))(x)  # 转置|重新排序
 
     x = Reshape((-1, 512))(x)
     out = Dense(nclass, name='linear')(x)

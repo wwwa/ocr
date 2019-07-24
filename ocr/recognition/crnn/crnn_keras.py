@@ -10,7 +10,7 @@ import tensorflow as tf
 
 from . import keys
 from .network_keras import keras_crnn as CRNN
-from .utils import strLabelConverter, resizeNormalize
+from .utils import strLabelConverter, ResizeNormalize
 from ...config import ocrModelKeras
 
 graph = tf.get_default_graph()  # 解决web.py 相关报错问题
@@ -36,7 +36,7 @@ def crnnOcr(image):
     scale = image.size[1] * 1.0 / 32
     w = image.size[0] / scale
     w = int(w)
-    transformer = resizeNormalize((w, 32))
+    transformer = ResizeNormalize((w, 32))
     image = transformer(image)
     image = image.astype(np.float32)
     image = np.array([[image]])

@@ -25,8 +25,7 @@ input_path = os.path.join(ROOT_PATH, 'data', '268', 'page', '*.jpg')
 if os.path.exists(output_path):
     shutil.rmtree(output_path)
 
-if not os.path.exists(output_path):
-    os.makedirs(output_path)
+os.makedirs(output_path)
 
 
 def crnn_rec(im, boxes, left_adjust=False, right_adjust=False, alph=0.2, f=1.0):
@@ -63,3 +62,26 @@ if __name__ == "__main__":
     for name in sorted(im_names):
         result = text_recognition(name)
         break
+    # import tensorflow as tf
+    # from ocr.detect.ctpn.ctpn_detect import get_network
+    # from tensorflow.python import pywrap_tensorflow
+    #
+    # net = get_network("VGGnet_test")
+    # md, ckpt = [], []
+    # for key in tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES):
+    #     # print(key.name)
+    #     md.append(key.name)
+    # # print("*" * 100)
+    # checkpoint_path = os.path.join(ROOT_PATH, "models", 'det', 'ctpn', 'checkpoints', 'VGGnet_fast_rcnn_iter_50000.ckpt')
+    # reader = pywrap_tensorflow.NewCheckpointReader(checkpoint_path)
+    # var_to_shape_map = reader.get_variable_to_shape_map()
+    # for key in sorted(var_to_shape_map):
+    #     # print("tensor_name: ", key)
+    #     # print(reader.get_tensor(key))
+    #     # print(key)
+    #     ckpt.append(key)
+    # md = sorted(md)
+    # ckpt = sorted(ckpt)
+    # print('\n'.join(md))
+    # print('*' * 100)
+    # print('\n'.join(ckpt))

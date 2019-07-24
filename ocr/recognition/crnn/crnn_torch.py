@@ -13,7 +13,7 @@ from torch.autograd import Variable
 
 from . import keys
 from .network_torch import CRNN
-from .utils import strLabelConverter, resizeNormalize
+from .utils import strLabelConverter, ResizeNormalize
 from ...config import ocrModel, LSTMFLAG, GPU, chinsesModel
 
 
@@ -57,7 +57,7 @@ def crnnOcr(image):
     scale = image.size[1] * 1.0 / 32
     w = image.size[0] / scale
     w = int(w)
-    transformer = resizeNormalize((w, 32))
+    transformer = ResizeNormalize((w, 32))
     image = transformer(image)
     image = image.astype(np.float32)
     image = torch.from_numpy(image)
