@@ -41,8 +41,9 @@ def crnn_rec(im, boxes, left_adjust=False, right_adjust=False, alph=0.2, f=1.0):
         part_img, new_w, new_h = rotate_cut_img(im, degree, box, w, h, left_adjust, right_adjust, alph)
         text = crnnOcr(part_img.convert('L'))
         if text.strip() != u'':
-            results.append({'cx': cx * f, 'cy': cy * f, 'text': text, 'w': new_w * f, 'h': new_h * f,
-                            'degree': degree * 180.0 / np.pi})
+            # results.append({'cx': cx * f, 'cy': cy * f, 'text': text, 'w': new_w * f, 'h': new_h * f,
+            #                 'degree': degree * 180.0 / np.pi})
+            results.append(text)
 
     return results
 
@@ -54,12 +55,16 @@ def text_recognition(image_name, alph=0.01):
     # img, f = letterbox_image(Image.fromarray(img), IMGSIZE)  ## pad
     text_recs, img_drawed = text_detect(img)  # 文字检测
     newBox = sort_box(text_recs)  # 行文本识别
-    result = crnn_rec(np.array(img), newBox, left_adjust, right_adjust, alph, 1.0)
-    return result
+    cv2.imshow("test", img_drawed)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+    results = crnn_rec(np.array(img), newBox, left_adjust, right_adjust, alph, 1.0)
+    return results
 
 
 if __name__ == "__main__":
     im_names = glob(input_path)
     for name in sorted(im_names):
-        result = text_recognition(name)
+        results = text_recognition(name)
+        print('\n'.join(results))
         break

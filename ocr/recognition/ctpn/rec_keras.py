@@ -89,7 +89,9 @@ def rec_keras(img, adjust=False):
     @adjust: 是否调整文字识别结果
     """
     cfg_from_file(os.path.join(DETECT_PATH, 'ctpn', 'text.yml'))
-    text_recs, img_framed, img = text_detect(img)
+    text_recs, img_framed = text_detect(img)
     text_recs = sort_box(text_recs)
     result = charRec(img, text_recs, adjust)
+    cv2.imshow("test", img_framed)
+    cv2.waitKey(0)
     return result, img_framed

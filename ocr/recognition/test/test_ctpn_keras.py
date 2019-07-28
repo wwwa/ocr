@@ -6,8 +6,10 @@
 """
 
 import os
-import cv2
 from glob import glob
+
+import cv2
+import tensorflow as tf
 
 from ocr import ROOT_PATH
 from ocr.recognition.ctpn.rec_keras import rec_keras
@@ -18,6 +20,7 @@ input_path = os.path.join(ROOT_PATH, 'data', '268', 'page', '*.jpg')
 
 
 if __name__ == "__main__":
+    print('\n'.join(sorted([key.name for key in tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES)])))
     im_names = glob(input_path)
     for name in sorted(im_names):
         result = rec_keras(cv2.imread(name))

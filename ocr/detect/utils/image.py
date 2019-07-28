@@ -20,6 +20,7 @@ def resize_im(w, h, scale=416, max_scale=608):
 
 
 def draw_boxes(img, boxes):
+    img = img.copy()
     for box in boxes:
         if np.linalg.norm(box[0] - box[1]) < 5 or np.linalg.norm(box[3] - box[0]) < 5:
             continue
@@ -31,6 +32,7 @@ def draw_boxes(img, boxes):
         cv2.line(img, (int(box[0]), int(box[1])), (int(box[4]), int(box[5])), color, 2)
         cv2.line(img, (int(box[6]), int(box[7])), (int(box[2]), int(box[3])), color, 2)
         cv2.line(img, (int(box[4]), int(box[5])), (int(box[6]), int(box[7])), color, 2)
+    return img
 
 
 def get_boxes(bboxes):
@@ -95,3 +97,82 @@ def letterbox_image(image, size, fillValue=[128, 128, 128]):
     boxed_image = Image.new('RGB', size, tuple(fillValue))
     boxed_image.paste(resized_image, (0, 0))
     return boxed_image, new_w / image_w
+
+
+def eval_angle(im, detectAngle=False):
+    """
+    估计图片偏移角度
+    @@param:im
+    @@param:detectAngle 是否检测文字朝向
+    """
+    angle = 0
+    img = np.array(im)
+    if detectAngle:
+        angle = angle_detect(img=np.copy(img))  ##文字朝向检测
+        if angle == 90:
+            im = Image.fromarray(im).transpose(Image.ROTATE_90)
+        elif angle == 180:
+            im = Image.fromarray(im).transpose(Image.ROTATE_180)
+        elif angle == 270:
+            im = Image.fromarray(im).transpose(Image.ROTATE_270)
+        img = np.array(im)
+
+    return angle, img
+
+
+def angle_detect_dnn(img, adjust=True):
+    """
+    文字方向检测
+    """
+    h, w = img.shape[:2]
+    ROTATE = [0, 90, 180, 270]
+    if adjust:
+        thesh = 0.05
+        xmin, ymin, xmax, ymax = int(thesh * w), int(thesh * h), w - int(thesh * w), h - int(thesh * h)
+        img = img[ymin:ymax, xmin:xmax]  ##剪切图片边缘
+
+    inputBlob = cv2.dnn.blobFromImage(img,
+                                      scalefactor=1.0,
+                                      size=(224, 224),
+                                      swapRB=True,
+                                      mean=[103.939, 116.779, 123.68], crop=False);
+    angleNet.setInput(inputBlob)
+    pred = angleNet.forward()
+    index = np.argmax(pred, axis=1)[0]
+    return ROTATE[index]
+
+
+def angle_detect_tf(img, adjust=True):
+    """
+    文字方向检测
+    """
+    h, w = img.shape[:2]
+    ROTATE = [0, 90, 180, 270]
+    if adjust:
+        thesh = 0.05
+        xmin, ymin, xmax, ymax = int(thesh * w), int(thesh * h), w - int(thesh * w), h - int(thesh * h)
+        img = img[ymin:ymax, xmin:xmax]  ##剪切图片边缘
+    img = cv2.resize(img, (224, 224))
+    img = img[..., ::-1].astype(np.float32)
+
+    img[..., 0] -= 103.939
+    img[..., 1] -= 116.779
+    img[..., 2] -= 123.68
+    img = np.array([img])
+
+    out = sess.run(predictions, feed_dict={inputImg: img,
+                                           keep_prob: 0
+                                           })
+
+    index = np.argmax(out, axis=1)[0]
+    return ROTATE[index]
+
+
+def angle_detect(img, adjust=True):
+    """
+    文字方向检测
+    """
+    if opencvFlag == 'keras':
+        return angle_detect_tf(img, adjust=adjust)
+    else:
+        return angle_detect_dnn(img, adjust=adjust)

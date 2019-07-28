@@ -53,12 +53,13 @@ def draw_boxes(img, boxes, scale):
     return text_recs, img
 
 
-def load_session():
+def load_tf_model():
+    gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=1.0)
     # init session
-    config = tf.ConfigProto(allow_soft_placement=True)
+    config = tf.ConfigProto(allow_soft_placement=True, gpu_options=gpu_options)
     sess = tf.Session(config=config)
     # load network
-    # net = get_network("VGGnet_test")
+    net = get_network("VGGnet_test")
     # load model
     print('Loading network {:s}... '.format("VGGnet_test"))
     saver = tf.train.Saver()
@@ -71,25 +72,26 @@ def load_session():
     except Exception as e:
         traceback.print_exc()
         raise 'Check your pretrained {:s}'.format(ckpt.model_checkpoint_path)
-    return sess
+    return sess, net
+
+
+sess, net = load_tf_model()
 
 
 def ctpn_detect(img):
     cfg_from_file(os.path.join(DETECT_PATH, 'ctpn', 'text.yml'))
 
-    net = get_network("VGGnet_test")
-    sess = load_session()
-
+    img, scale = resize_im(np.array(img), scale=TextLineCfg.SCALE, max_scale=TextLineCfg.MAX_SCALE)
     scores, boxes = test_ctpn(sess, net, img)
     sess.close()
 
     textdetector = TextDetector()
     boxes = textdetector.detect(boxes, scores[:, np.newaxis], img.shape[:2])
-    return boxes
+    # return boxes
+    return scores, boxes, img, scale
 
 
 def text_detect(img):
-    img, scale = resize_im(np.array(img), scale=TextLineCfg.SCALE, max_scale=TextLineCfg.MAX_SCALE)
-    boxes = ctpn_detect(img)
+    scores, boxes, img, scale = ctpn_detect(img)
     text_recs, img_drawed = draw_boxes(img, boxes, scale)
     return text_recs, img_drawed

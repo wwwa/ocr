@@ -14,8 +14,8 @@ import numpy as np
 from PIL import Image
 
 from ocr import ROOT_PATH
-from ocr.detect.ctpn.ctpn_detect import text_detect
 from ocr.recognition.crnn.crnn_keras import crnnOcr
+from ocr.detect.keras.keras_detect import keras_detect
 from ocr.utils.image import solve, rotate_cut_img, sort_box
 
 output_path = os.path.join(ROOT_PATH, 'output_data', 'ctpn')
@@ -51,7 +51,10 @@ def text_recognition(image_name, alph=0.01):
     right_adjust = True
     img = cv2.imread(image_name)
     # img, f = letterbox_image(Image.fromarray(img), IMGSIZE)  # pad
-    text_recs, img_drawed = text_detect(img)  # 文字检测
+    text_recs, img_drawed = keras_detect(img)  # 文字检测
+    cv2.imshow("test", img_drawed)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
     newBox = sort_box(text_recs)  # 行文本识别
     result = crnn_rec(np.array(img), newBox, left_adjust, right_adjust, alph, 1.0)
     return result
@@ -61,27 +64,5 @@ if __name__ == "__main__":
     im_names = glob(input_path)
     for name in sorted(im_names):
         result = text_recognition(name)
+        print(result)
         break
-    # import tensorflow as tf
-    # from ocr.detect.ctpn.ctpn_detect import get_network
-    # from tensorflow.python import pywrap_tensorflow
-    #
-    # net = get_network("VGGnet_test")
-    # md, ckpt = [], []
-    # for key in tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES):
-    #     # print(key.name)
-    #     md.append(key.name)
-    # # print("*" * 100)
-    # checkpoint_path = os.path.join(ROOT_PATH, "models", 'det', 'ctpn', 'checkpoints', 'VGGnet_fast_rcnn_iter_50000.ckpt')
-    # reader = pywrap_tensorflow.NewCheckpointReader(checkpoint_path)
-    # var_to_shape_map = reader.get_variable_to_shape_map()
-    # for key in sorted(var_to_shape_map):
-    #     # print("tensor_name: ", key)
-    #     # print(reader.get_tensor(key))
-    #     # print(key)
-    #     ckpt.append(key)
-    # md = sorted(md)
-    # ckpt = sorted(ckpt)
-    # print('\n'.join(md))
-    # print('*' * 100)
-    # print('\n'.join(ckpt))
